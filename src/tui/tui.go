@@ -118,8 +118,6 @@ func (t *Tui) Run() {
 				}
 			}
 			t.commandView.SetStatus("--INSERT--")
-		case AppendToCommand:
-			t.commandView.AppendToCommand(ch)
 		case EraseLastFromCommand:
 			erased := t.commandView.EraseLastFromCommand()
 			if !erased {

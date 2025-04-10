@@ -12,7 +12,6 @@ const (
 	VisualModeChange
 	CommandModeChange
 
-	AppendToCommand
 	EraseLastFromCommand
 	ExecuteCommand
 
@@ -62,10 +61,6 @@ func GetKeyAction(currentMode Mode, ch rune) (Action, *ActionOpts) {
 	case 'O':
 		if currentMode == NormalMode {
 			return InsertModeChange, &ActionOpts{prevLineInsertTrigger: true}
-		}
-	case 'q':
-		if currentMode == CommandMode {
-			return AppendToCommand, nil
 		}
 	case '\n':
 		if currentMode == CommandMode {
