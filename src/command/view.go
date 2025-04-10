@@ -7,6 +7,7 @@ import (
 type CommandView struct {
 	win     *ncurses.Window
 	command string
+	status  string
 }
 
 func NewCommandView(win *ncurses.Window) CommandView {
@@ -16,11 +17,12 @@ func NewCommandView(win *ncurses.Window) CommandView {
 	return CommandView{
 		win:     subWin,
 		command: "",
+		status:  "",
 	}
 }
 
-func (c *CommandView) SetCommand(command string) {
-	c.command = command
+func (c *CommandView) SetStatus(status string) {
+	c.status = status
 }
 
 func (c *CommandView) AppendToCommand(ch rune) {
@@ -35,8 +37,9 @@ func (c *CommandView) EraseLastFromCommand() bool {
 	return true
 }
 
-func (c *CommandView) ClearCommand() {
+func (c *CommandView) Clear() {
 	c.command = ""
+	c.status = ""
 }
 
 func (c *CommandView) GetCommandString() string {
@@ -47,8 +50,8 @@ func (c *CommandView) Refresh(inCommandMode bool) {
 	c.win.Erase()
 	if inCommandMode {
 		c.win.AddStr(":" + c.command)
-	} else if c.command != "" {
-		c.win.AddStr(c.command)
+	} else if c.status != "" {
+		c.win.AddStr(c.status)
 	}
 	c.win.Refresh()
 }

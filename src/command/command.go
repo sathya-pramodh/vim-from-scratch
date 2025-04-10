@@ -1,6 +1,8 @@
 package command
 
-import "errors"
+import (
+	"errors"
+)
 
 type CommandType uint64
 
