@@ -1,9 +1,5 @@
 package tui
 
-import (
-	"seehuhn.de/go/ncurses"
-)
-
 type Action uint64
 
 const (
@@ -12,8 +8,16 @@ const (
 	VisualModeChange
 	CommandModeChange
 
+	MoveCursorLeft
+	MoveCursorDown
+	MoveCursorUp
+	MoveCursorRight
+
 	EraseLastFromCommand
 	ExecuteCommand
+
+	InsertBackspaceChar
+	InsertTabChar
 
 	GotoNextLine
 
@@ -26,6 +30,7 @@ type ActionOpts struct {
 	lineStartInsertTrigger bool
 	nextLineInsertTrigger  bool
 	prevLineInsertTrigger  bool
+	mustTab                bool
 }
 
 func GetKeyAction(currentMode Mode, ch rune) (Action, *ActionOpts) {
@@ -62,21 +67,44 @@ func GetKeyAction(currentMode Mode, ch rune) (Action, *ActionOpts) {
 		if currentMode == NormalMode {
 			return InsertModeChange, &ActionOpts{prevLineInsertTrigger: true}
 		}
-	case '\n':
+	case 'h':
+		if currentMode == NormalMode {
+			return MoveCursorLeft, nil
+		}
+	case 'j':
+		if currentMode == NormalMode {
+			return MoveCursorDown, nil
+		}
+	case 'k':
+		if currentMode == NormalMode {
+			return MoveCursorUp, nil
+		}
+	case 'l':
+		if currentMode == NormalMode {
+			return MoveCursorRight, nil
+		}
+	case '\n': // <CR>
 		if currentMode == CommandMode {
 			return ExecuteCommand, nil
 		}
 		if currentMode == InsertMode {
 			return GotoNextLine, nil
 		}
-	case ncurses.KeyBackspace:
+	case '\t': // <Tab>
+		if currentMode == InsertMode {
+			return UnknownAction, &ActionOpts{mustTab: true}
+		}
+	case 127: // Backspace
 		if currentMode == CommandMode {
 			return EraseLastFromCommand, nil
 		}
-	case rune(27):
+		if currentMode == InsertMode {
+			return InsertBackspaceChar, nil
+		}
+	case 27: // Escape
 		if currentMode == CommandMode || currentMode == InsertMode {
 			return NormalModeChange, nil
 		}
 	}
-	return UnknownAction, nil
+	return UnknownAction, &ActionOpts{mustTab: false}
 }

@@ -36,8 +36,33 @@ func (b *Buffer) WriteToBuf(ch rune, x, y int) error {
 	return nil
 }
 
+func (b *Buffer) DeleteFromBuf(x, y int) error {
+	if b.contents == "" {
+		return nil
+	}
+	splits := b.splitContentsByLineEnd()
+	if y >= len(splits) {
+		return errors.New("internal error")
+	}
+	stringToEdit := splits[y]
+	if x > len(stringToEdit) {
+		return errors.New("internal error")
+	}
+	if x == len(stringToEdit) {
+		stringToEdit = stringToEdit[0 : x-1]
+	} else {
+		stringToEdit = stringToEdit[0:x] + stringToEdit[x+1:]
+	}
+	splits[y] = stringToEdit
+	b.updateContentsFromSplits(splits)
+	return nil
+}
+
 func (b *Buffer) GetLineEndX(y int) (int, error) {
 	splits := b.splitContentsByLineEnd()
+	if y < 0 {
+		return -1, errors.New("internal error")
+	}
 	if y >= len(splits) {
 		return -1, errors.New("internal error")
 	}
