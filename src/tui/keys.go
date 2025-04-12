@@ -17,7 +17,6 @@ const (
 	ExecuteCommand
 
 	InsertBackspaceChar
-	InsertTabChar
 
 	GotoNextLine
 
