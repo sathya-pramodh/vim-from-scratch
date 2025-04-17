@@ -28,87 +28,90 @@ const (
 	UnknownAction
 )
 
-type ActionOpts struct {
-	AppendTrigger          bool
-	LineEndAppendTrigger   bool
-	LineStartInsertTrigger bool
-	NextLineInsertTrigger  bool
-	PrevLineInsertTrigger  bool
-	MustTab                bool
-}
+type ActionTrigger uint64
 
-func GetKeyAction(currentMode mode.Mode, ch rune) (Action, *ActionOpts) {
+const (
+	AppendTrigger ActionTrigger = iota
+	LineEndAppendTrigger
+	LineStartInsertTrigger
+	NextLineInsertTrigger
+	PrevLineInsertTrigger
+	MustTab
+	NoTrigger
+)
+
+func GetKeyAction(currentMode mode.Mode, ch rune) (Action, ActionTrigger) {
 	switch ch {
 	case ':':
 		if currentMode == mode.NormalMode {
-			return CommandModeChange, nil
+			return CommandModeChange, NoTrigger
 		}
 	case 'i':
 		if currentMode == mode.NormalMode {
-			return InsertModeChange, nil
+			return InsertModeChange, NoTrigger
 		}
 	case 'I':
 		if currentMode == mode.NormalMode {
-			return InsertModeChange, &ActionOpts{LineStartInsertTrigger: true}
+			return InsertModeChange, LineStartInsertTrigger
 		}
 	case 'v':
 		if currentMode == mode.NormalMode {
-			return VisualModeChange, nil
+			return VisualModeChange, NoTrigger
 		}
 	case 'a':
 		if currentMode == mode.NormalMode {
-			return InsertModeChange, &ActionOpts{AppendTrigger: true}
+			return InsertModeChange, AppendTrigger
 		}
 	case 'A':
 		if currentMode == mode.NormalMode {
-			return InsertModeChange, &ActionOpts{LineEndAppendTrigger: true}
+			return InsertModeChange, LineEndAppendTrigger
 		}
 	case 'o':
 		if currentMode == mode.NormalMode {
-			return InsertModeChange, &ActionOpts{NextLineInsertTrigger: true}
+			return InsertModeChange, NextLineInsertTrigger
 		}
 	case 'O':
 		if currentMode == mode.NormalMode {
-			return InsertModeChange, &ActionOpts{PrevLineInsertTrigger: true}
+			return InsertModeChange, PrevLineInsertTrigger
 		}
 	case 'h':
 		if currentMode == mode.NormalMode {
-			return MoveCursorLeft, nil
+			return MoveCursorLeft, NoTrigger
 		}
 	case 'j':
 		if currentMode == mode.NormalMode {
-			return MoveCursorDown, nil
+			return MoveCursorDown, NoTrigger
 		}
 	case 'k':
 		if currentMode == mode.NormalMode {
-			return MoveCursorUp, nil
+			return MoveCursorUp, NoTrigger
 		}
 	case 'l':
 		if currentMode == mode.NormalMode {
-			return MoveCursorRight, nil
+			return MoveCursorRight, NoTrigger
 		}
 	case '\n': // <CR>
 		if currentMode == mode.CommandMode {
-			return ExecuteCommand, nil
+			return ExecuteCommand, NoTrigger
 		}
 		if currentMode == mode.InsertMode {
-			return GotoNextLine, nil
+			return GotoNextLine, NoTrigger
 		}
 	case '\t': // <Tab>
 		if currentMode == mode.InsertMode {
-			return UnknownAction, &ActionOpts{MustTab: true}
+			return UnknownAction, MustTab
 		}
 	case ncurses.KeyBackspace, 127: // Backspace
 		if currentMode == mode.CommandMode {
-			return EraseLastFromCommand, nil
+			return EraseLastFromCommand, NoTrigger
 		}
 		if currentMode == mode.InsertMode {
-			return InsertBackspaceChar, nil
+			return InsertBackspaceChar, NoTrigger
 		}
 	case 27: // Escape
 		if currentMode == mode.CommandMode || currentMode == mode.InsertMode {
-			return NormalModeChange, nil
+			return NormalModeChange, NoTrigger
 		}
 	}
-	return UnknownAction, &ActionOpts{MustTab: false}
+	return UnknownAction, NoTrigger
 }

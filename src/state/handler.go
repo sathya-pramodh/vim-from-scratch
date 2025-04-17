@@ -6,7 +6,7 @@ import (
 	"github.com/sathya-pramodh/vim-from-scratch/src/mode"
 )
 
-func (t *TuiState) HandleAction(a action.Action, opts *action.ActionOpts, ch rune) {
+func (t *TuiState) HandleAction(a action.Action, opts action.ActionTrigger, ch rune) {
 	switch a {
 	case action.NormalModeChange:
 		t.Mode = mode.NormalMode
@@ -17,52 +17,47 @@ func (t *TuiState) HandleAction(a action.Action, opts *action.ActionOpts, ch run
 		t.CommandView.Clear()
 	case action.InsertModeChange:
 		t.Mode = mode.InsertMode
-		if opts != nil {
-			if opts.AppendTrigger {
-				t.CursorY, t.CursorX = t.GetNextCursorPos(false)
+		switch opts {
+		case action.AppendTrigger:
+			t.CursorY, t.CursorX = t.GetNextCursorPos(false)
+		case action.LineEndAppendTrigger:
+			y, x, err := t.GetLineEndCursorPos()
+			if err != nil {
+				t.WriteError(err)
+				return
 			}
-			if opts.LineEndAppendTrigger {
-				y, x, err := t.GetLineEndCursorPos()
-				if err != nil {
-					t.WriteError(err)
-					return
-				}
-				t.CursorX, t.CursorY = x, y
+			t.CursorX, t.CursorY = x, y
+		case action.LineStartInsertTrigger:
+			y, x, err := t.GetLineStartCursorPos()
+			if err != nil {
+				t.WriteError(err)
+				return
 			}
-			if opts.LineStartInsertTrigger {
-				y, x, err := t.GetLineStartCursorPos()
-				if err != nil {
-					t.WriteError(err)
-					return
-				}
-				t.CursorX, t.CursorY = x, y
+			t.CursorX, t.CursorY = x, y
+		case action.NextLineInsertTrigger:
+			y, x, err := t.GetLineEndCursorPos()
+			if err != nil {
+				t.WriteError(err)
+				return
 			}
-			if opts.NextLineInsertTrigger {
-				y, x, err := t.GetLineEndCursorPos()
-				if err != nil {
-					t.WriteError(err)
-					return
-				}
-				err = t.Buf.WriteToBuf('\n', x, y)
-				if err != nil {
-					t.WriteError(err)
-					return
-				}
-				t.CursorX, t.CursorY = 0, y+1
+			err = t.Buf.WriteToBuf('\n', x, y)
+			if err != nil {
+				t.WriteError(err)
+				return
 			}
-			if opts.PrevLineInsertTrigger {
-				y, x, err := t.GetLineStartCursorPos()
-				if err != nil {
-					t.WriteError(err)
-					return
-				}
-				err = t.Buf.WriteToBuf('\n', x, y)
-				if err != nil {
-					t.WriteError(err)
-					return
-				}
-				t.CursorX, t.CursorY = 0, y
+			t.CursorX, t.CursorY = 0, y+1
+		case action.PrevLineInsertTrigger:
+			y, x, err := t.GetLineStartCursorPos()
+			if err != nil {
+				t.WriteError(err)
+				return
 			}
+			err = t.Buf.WriteToBuf('\n', x, y)
+			if err != nil {
+				t.WriteError(err)
+				return
+			}
+			t.CursorX, t.CursorY = 0, y
 		}
 		t.CommandView.SetStatus("-- INSERT --")
 	case action.EraseLastFromCommand:
@@ -106,7 +101,7 @@ func (t *TuiState) HandleAction(a action.Action, opts *action.ActionOpts, ch run
 			t.CommandView.AppendToCommand(ch)
 		case mode.InsertMode:
 			var stringToWrite string
-			if opts.MustTab {
+			if opts == action.MustTab {
 				stringToWrite = "    "
 			} else {
 				stringToWrite = string(ch)
@@ -118,7 +113,7 @@ func (t *TuiState) HandleAction(a action.Action, opts *action.ActionOpts, ch run
 					return
 				}
 			}
-			t.CursorY, t.CursorX = t.GetNextCursorPos(opts.MustTab)
+			t.CursorY, t.CursorX = t.GetNextCursorPos(opts == action.MustTab)
 		default:
 			return
 		}
