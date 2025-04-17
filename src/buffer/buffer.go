@@ -1,4 +1,4 @@
-package tui
+package buffer
 
 import (
 	"errors"
@@ -6,15 +6,15 @@ import (
 )
 
 type Buffer struct {
-	contents string
+	Contents string
 }
 
 func (b *Buffer) splitContentsByLineEnd() []string {
-	return strings.Split(b.contents, "\n")
+	return strings.Split(b.Contents, "\n")
 }
 
 func (b *Buffer) updateContentsFromSplits(splits []string) {
-	b.contents = strings.Join(splits, "\n")
+	b.Contents = strings.Join(splits, "\n")
 }
 
 func (b *Buffer) WriteToBuf(ch rune, x, y int) error {
@@ -37,7 +37,7 @@ func (b *Buffer) WriteToBuf(ch rune, x, y int) error {
 }
 
 func (b *Buffer) DeleteFromBuf(x, y int) error {
-	if b.contents == "" {
+	if b.Contents == "" {
 		return nil
 	}
 	splits := b.splitContentsByLineEnd()
