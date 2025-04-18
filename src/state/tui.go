@@ -124,67 +124,6 @@ func (t *TuiState) GetNextCursorPos(mustTab bool) (int, int) {
 	return t.CursorY, t.CursorX + inc
 }
 
-func (t *TuiState) MoveCursorLeft() {
-	if t.CursorX-1 < 0 {
-		return
-	}
-	t.CursorX -= 1
-}
-
-func (t *TuiState) MoveCursorDown() {
-	if t.CursorY+1 > t.MaxY {
-		return
-	}
-	t.CursorY += 1
-	_, xend, err := t.GetLineEndCursorPos()
-	if err != nil {
-		t.CursorY -= 1
-		return
-	}
-	_, xstart, err := t.GetLineStartCursorPos()
-	if err != nil {
-		t.CursorY -= 1
-		return
-	}
-	if t.CursorX > xend {
-		t.CursorX = xend
-	}
-	if t.CursorX < xstart {
-		t.CursorX = xstart
-	}
-}
-
-func (t *TuiState) MoveCursorUp() {
-	if t.CursorY-1 < 0 {
-		return
-	}
-	t.CursorY -= 1
-	_, xend, err := t.GetLineEndCursorPos()
-	if err != nil {
-		t.CursorY += 1
-		return
-	}
-	_, xstart, err := t.GetLineStartCursorPos()
-	if err != nil {
-		t.CursorY += 1
-		return
-	}
-	if t.CursorX > xend {
-		t.CursorX = xend
-	}
-	if t.CursorX < xstart {
-		t.CursorX = xstart
-	}
-}
-
-func (t *TuiState) MoveCursorRight() {
-	_, xend, _ := t.GetLineEndCursorPos()
-	if t.CursorX+1 >= xend {
-		return
-	}
-	t.CursorX += 1
-}
-
 func (t *TuiState) Quit() {
 	t.CommandView.Quit()
 	os.Exit(0)

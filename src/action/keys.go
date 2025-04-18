@@ -17,6 +17,8 @@ const (
 	MoveCursorDown
 	MoveCursorUp
 	MoveCursorRight
+	MoveCursorNextWord
+	MoveCursorNextWordEnd
 
 	EraseLastFromCommand
 	ExecuteCommand
@@ -89,6 +91,14 @@ func GetKeyAction(currentMode mode.Mode, ch rune) (Action, ActionTrigger) {
 	case 'l':
 		if currentMode == mode.NormalMode {
 			return MoveCursorRight, NoTrigger
+		}
+	case 'w':
+		if currentMode == mode.NormalMode {
+			return MoveCursorNextWord, NoTrigger
+		}
+	case 'e':
+		if currentMode == mode.NormalMode {
+			return MoveCursorNextWordEnd, NoTrigger
 		}
 	case '\n': // <CR>
 		if currentMode == mode.CommandMode {

@@ -88,6 +88,18 @@ func (t *TuiState) HandleAction(a action.Action, opts action.ActionTrigger, ch r
 		t.MoveCursorUp()
 	case action.MoveCursorRight:
 		t.MoveCursorRight()
+	case action.MoveCursorNextWord:
+		err := t.MoveCursorNextWord()
+		if err != nil {
+			t.WriteError(err)
+			return
+		}
+	case action.MoveCursorNextWordEnd:
+		err := t.MoveCursorNextWordEnd()
+		if err != nil {
+			t.WriteError(err)
+			return
+		}
 	case action.InsertBackspaceChar:
 		y, x := t.CursorY, t.CursorX
 		t.CursorY, t.CursorX = t.GetPrevCursorPos(true)
