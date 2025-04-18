@@ -48,12 +48,19 @@ func (b *Buffer) DeleteFromBuf(x, y int) error {
 	if x > len(stringToEdit) {
 		return errors.New("internal error")
 	}
-	if x == len(stringToEdit) {
-		stringToEdit = stringToEdit[0 : x-1]
+	if x == 0 {
+		if y-1 >= 0 {
+			splits[y-1] += stringToEdit
+			splits = append(splits[0:y], splits[y+1:]...)
+		}
 	} else {
-		stringToEdit = stringToEdit[0:x] + stringToEdit[x+1:]
+		if x == len(stringToEdit) {
+			stringToEdit = stringToEdit[0 : x-1]
+		} else {
+			stringToEdit = stringToEdit[0:x-1] + stringToEdit[x:]
+		}
+		splits[y] = stringToEdit
 	}
-	splits[y] = stringToEdit
 	b.updateContentsFromSplits(splits)
 	return nil
 }
