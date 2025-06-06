@@ -3,12 +3,47 @@ package buffer
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"unicode"
 )
 
 type Buffer struct {
 	Contents string
+	FilePath string
+}
+
+func (b *Buffer) SetFile(filePath string) error {
+	b.FilePath = filePath
+	var file os.FileInfo
+	var err error
+	file, err = os.Stat(filePath)
+	if err == nil {
+		if file.IsDir() {
+			return fmt.Errorf("SetFile: cannot handle directory")
+		}
+		bytes, err := os.ReadFile(filePath)
+		if err != nil {
+			return fmt.Errorf("SetFile: %s", err)
+		}
+		b.Contents = string(bytes)
+	} else {
+		b.Contents = ""
+	}
+	return nil
+}
+
+func (b *Buffer) Write() error {
+	if _, err := os.Stat(b.FilePath); err != nil {
+		if _, err := os.Create(b.FilePath); err != nil {
+			return fmt.Errorf("Write: %s", err)
+		}
+	}
+	err := os.WriteFile(b.FilePath, []byte(b.Contents), os.FileMode(os.O_WRONLY))
+	if err != nil {
+		return fmt.Errorf("Write: %s", err)
+	}
+	return nil
 }
 
 func (b *Buffer) splitContentsByLineEnd() []string {
@@ -22,11 +57,11 @@ func (b *Buffer) updateContentsFromSplits(splits []string) {
 func (b *Buffer) WriteToBuf(ch rune, x, y int) error {
 	splits := b.splitContentsByLineEnd()
 	if y >= len(splits) {
-		return errors.New("internal error")
+		return errors.New("WriteToBuf: internal error")
 	}
 	stringToEdit := splits[y]
 	if x > len(stringToEdit) {
-		return errors.New("internal error")
+		return errors.New("WriteToBuf: internal error")
 	}
 	if x == len(stringToEdit) {
 		stringToEdit += string(ch)
@@ -44,11 +79,11 @@ func (b *Buffer) DeleteFromBuf(x, y int) error {
 	}
 	splits := b.splitContentsByLineEnd()
 	if y >= len(splits) {
-		return errors.New("internal error")
+		return errors.New("WriteToBuf: internal error")
 	}
 	stringToEdit := splits[y]
 	if x > len(stringToEdit) {
-		return errors.New("internal error")
+		return errors.New("WriteToBuf: internal error")
 	}
 	if x == 0 {
 		if y-1 >= 0 {
@@ -70,10 +105,10 @@ func (b *Buffer) DeleteFromBuf(x, y int) error {
 func (b *Buffer) GetLineEndX(y int) (int, error) {
 	splits := b.splitContentsByLineEnd()
 	if y < 0 {
-		return -1, errors.New("internal error")
+		return -1, errors.New("WriteToBuf: internal error")
 	}
 	if y >= len(splits) {
-		return -1, errors.New("internal error")
+		return -1, errors.New("WriteToBuf: internal error")
 	}
 
 	return len(splits[y]), nil
@@ -82,7 +117,7 @@ func (b *Buffer) GetLineEndX(y int) (int, error) {
 func (b *Buffer) GetLineStartX(y int) (int, error) {
 	splits := b.splitContentsByLineEnd()
 	if y >= len(splits) {
-		return -1, errors.New("internal error")
+		return -1, errors.New("WriteToBuf: internal error")
 	}
 	var idx int
 	for i, ch := range splits[y] {
@@ -98,7 +133,7 @@ func (b *Buffer) GetNextWordPos(x, y int) (int, int, error) {
 	lines := b.splitContentsByLineEnd()
 
 	if y < 0 || y >= len(lines) {
-		return -1, -1, errors.New("internal error")
+		return -1, -1, errors.New("GetNextWordPos: internal error")
 	}
 
 	for lineIdx := y; lineIdx < len(lines); lineIdx++ {
@@ -107,7 +142,7 @@ func (b *Buffer) GetNextWordPos(x, y int) (int, int, error) {
 		if lineIdx != y {
 			x, err := b.GetLineStartX(lineIdx)
 			if err != nil {
-				return -1, -1, fmt.Errorf("get next word pos: %s", err)
+				return -1, -1, fmt.Errorf("GetNextWordPos: %s", err)
 			}
 			return x, lineIdx, nil
 		}
@@ -139,7 +174,7 @@ func (b *Buffer) GetNextWordEndPos(x, y int) (int, int, error) {
 	lines := b.splitContentsByLineEnd()
 
 	if y < 0 || y >= len(lines) {
-		return 0, 0, errors.New("internal error")
+		return 0, 0, errors.New("GetNextWordEndPos: internal error")
 	}
 
 	for lineIdx := y; lineIdx < len(lines); lineIdx++ {
@@ -148,7 +183,7 @@ func (b *Buffer) GetNextWordEndPos(x, y int) (int, int, error) {
 		if lineIdx != y {
 			x, err := b.GetLineStartX(lineIdx)
 			if err != nil {
-				return -1, -1, fmt.Errorf("get next word pos: %s", err)
+				return -1, -1, fmt.Errorf("GetNextWordEndPos: %s", err)
 			}
 			startX = x
 		}

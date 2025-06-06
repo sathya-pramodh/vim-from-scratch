@@ -22,9 +22,15 @@ type TuiState struct {
 	MustRefresh     bool
 }
 
-func NewTuiState(win *ncurses.Window) TuiState {
+func NewTuiState(win *ncurses.Window, filePath string) (TuiState, error) {
 	newBuffer := buffer.Buffer{
 		Contents: "",
+	}
+	if filePath != "" {
+		err := newBuffer.SetFile(filePath)
+		if err != nil {
+			return TuiState{}, fmt.Errorf("NewTuiState: %s", err)
+		}
 	}
 	var attachedBuffers []*buffer.Buffer
 	attachedBuffers = append(attachedBuffers, &newBuffer)
@@ -45,7 +51,7 @@ func NewTuiState(win *ncurses.Window) TuiState {
 		MaxX:            MaxX,
 		MaxY:            MaxY,
 		MustRefresh:     false,
-	}
+	}, nil
 }
 
 func (t *TuiState) WriteError(err error) {
@@ -54,18 +60,23 @@ func (t *TuiState) WriteError(err error) {
 	t.MustRefresh = true
 }
 
-func (t *TuiState) ExecuteCommand(cmd command.CommandType) {
+func (t *TuiState) ExecuteCommand(cmd command.CommandType) error {
 	switch cmd {
 	case command.QuitCommand:
-		t.Quit()
-		command.ExecuteQuitCommand()
+		t.ExecuteQuitCommand()
+	case command.WriteCommand:
+		err := t.ExecuteWriteCommand()
+		if err != nil {
+			return fmt.Errorf("ExecuteCommand: %s", err)
+		}
 	}
+	return nil
 }
 
 func (t *TuiState) getLineEnd(y int) (int, error) {
 	x, err := t.Buf.GetLineEndX(y)
 	if err != nil {
-		return -1, fmt.Errorf("get line end pos: %s", err)
+		return -1, fmt.Errorf("getLineEnd: %s", err)
 	}
 	return x, nil
 }
@@ -73,7 +84,7 @@ func (t *TuiState) getLineEnd(y int) (int, error) {
 func (t *TuiState) getLineStart(y int) (int, error) {
 	x, err := t.Buf.GetLineStartX(y)
 	if err != nil {
-		return -1, fmt.Errorf("get line start pos: %s", err)
+		return -1, fmt.Errorf("getLineStart: %s", err)
 	}
 	return x, nil
 

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/sathya-pramodh/vim-from-scratch/src/action"
 	"github.com/sathya-pramodh/vim-from-scratch/src/mode"
 	"github.com/sathya-pramodh/vim-from-scratch/src/state"
@@ -12,13 +14,16 @@ type Tui struct {
 	state *state.TuiState
 }
 
-func NewTui() Tui {
+func NewTui(filePath string) (Tui, error) {
 	win := ncurses.Init()
-	state := state.NewTuiState(win)
+	state, err := state.NewTuiState(win, filePath)
+	if err != nil {
+		return Tui{win: win, state: &state}, fmt.Errorf("NewTui: %s", err)
+	}
 	return Tui{
 		win:   win,
 		state: &state,
-	}
+	}, nil
 }
 
 func (t *Tui) Run() {

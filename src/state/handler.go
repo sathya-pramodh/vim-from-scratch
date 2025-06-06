@@ -71,7 +71,12 @@ func (t *TuiState) HandleAction(a action.Action, opts action.ActionTrigger, ch r
 			t.WriteError(err)
 			return
 		}
-		t.ExecuteCommand(cmd)
+		err = t.ExecuteCommand(cmd)
+		if err != nil {
+			t.WriteError(err)
+			return
+		}
+		t.Mode = mode.NormalMode
 	case action.GotoNextLine:
 		err := t.Buf.WriteToBuf('\n', t.CursorX, t.CursorY)
 		if err != nil {

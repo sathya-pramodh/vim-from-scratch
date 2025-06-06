@@ -66,7 +66,7 @@ func (t *TuiState) MoveCursorRight() {
 func (t *TuiState) MoveCursorNextWord() error {
 	x, y, err := t.Buf.GetNextWordPos(t.CursorX, t.CursorY)
 	if err != nil {
-		return fmt.Errorf("move cursor next word: %s", err)
+		return fmt.Errorf("MoveCursorNextWord: %s", err)
 	}
 	t.CursorX, t.CursorY = x, y
 	return nil
@@ -75,7 +75,7 @@ func (t *TuiState) MoveCursorNextWord() error {
 func (t *TuiState) MoveCursorNextWordEnd() error {
 	x, y, err := t.Buf.GetNextWordEndPos(t.CursorX, t.CursorY)
 	if err != nil {
-		return fmt.Errorf("move cursor next word end: %s", err)
+		return fmt.Errorf("MoveCursorNextWordEnd: %s", err)
 	}
 	t.CursorX, t.CursorY = x, y
 	return nil
